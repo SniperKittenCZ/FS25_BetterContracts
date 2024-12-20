@@ -50,7 +50,7 @@ function fixPosition(element, invLayout)
 		element:invalidateLayout(true)
 	end
 end
-function BetterContracts:loadGUI(guiPath)
+function loadGUI(self, guiPath)
 	-- load my gui profiles
 	local fname = guiPath .. "guiProfiles.xml"
 	if fileExists(fname) then
@@ -61,7 +61,8 @@ function BetterContracts:loadGUI(guiPath)
 	end
 	-- load our sortbox (and mission table) as child of contractsListBox:
 	local canLoad = loadGuiFile(self, guiPath.."BCGui.xml", self.frCon.contractsListBox, function(parent)
-		fixPosition(parent:getDescendantById("sortbox"))
+		self.my.sortbox = parent:getDescendantById("sortbox")
+		fixPosition(self.my.sortbox)
 		parent:getDescendantById("layout"):invalidateLayout(true) -- adjust sort buttons
 
 		-- position mission table:
@@ -109,6 +110,100 @@ function BetterContracts:loadGUI(guiPath)
   ]]
 	return canLoad
 end
+function initGui(self)
+	if not loadGUI(self, self.directory .. "gui/") then
+		Logging.warning("'%s.Gui' failed to load! Supporting files are missing.", self.name)
+	else
+		debugPrint("-------- gui loaded -----------")
+	end
+	-- add new buttons
+	self.detailsButtonInfo = {
+		inputAction = InputAction.MENU_EXTRA_3,
+		text = g_i18n:getText("bc_detailsOn"),
+		callback = detailsButtonCallback
+	}
+	-- register action, so that our button is also activated by keystroke
+	local _, eventId = g_inputBinding:registerActionEvent("MENU_EXTRA_3", g_inGameMenu, onClickMenuExtra3, false, true, false, true)
+	self.eventExtra3 = eventId
+
+	-- setup new / clear buttons for contracts page:
+	local parent = g_inGameMenu.menuButton[1].parent
+	local button = g_inGameMenu.menuButton[1]:clone(parent)
+	button.onClickCallback = onClickNewContractsCallback
+	button:setText(g_i18n:getText("bc_new_contracts"))
+	button:setInputAction("MENU_EXTRA_1")
+	self.newButton = button 
+	
+	button = g_inGameMenu.menuButton[1]:clone(parent)
+	button.onClickCallback = onClickClearContractsCallback
+	button:setText(g_i18n:getText("bc_clear_contracts"))
+	button:setInputAction("MENU_EXTRA_2")
+	self.clearButton = button 
+
+	Utility.overwrittenFunction(g_inGameMenu,"onClickMenuExtra1",onClickMenuExtra1)
+	Utility.overwrittenFunction(g_inGameMenu,"onClickMenuExtra2",onClickMenuExtra2)
+
+	-- inform us on subCategoryChange:
+	self.frCon.subCategorySelector.onClickCallback = onChangeSubCategory
+
+ --[[
+	self:fixInGameMenuPage(self.settingsPage, "pageBCSettings", "gui/ui_2.dds",
+			{0, 0, 64, 64}, {256,256}, nil, function () 
+				if g_currentMission.missionDynamicInfo.isMultiplayer then
+					return g_currentMission.isMasterUser 
+				end
+				return true
+				end)
+	loadIcons(self)
+	]]
+	------------------- setup my display elements -------------------------------------
+ -- enlarge contract details listbox
+	self.frCon.farmerBox:applyProfile("BC_contractsFarmerBox")
+	self.frCon.farmerImage:applyProfile("BC_contractsFarmerImage")
+	--self.frCon.farmerName:applyProfile("BC_contractsFarmerName")
+
+	self.frCon.contractBox:applyProfile("BC_contractsContractBox")
+	local desc = self.frCon.contractBox:getDescendants(function(elem)
+		return elem.text == g_i18n:getText("ui_contractsInfo"):upper()
+		end)
+	if desc[1] then  
+		desc[1]:applyProfile("BC_contractsContractInfoTitle")
+	end
+	self.frCon.contractDescriptionText:applyProfile("BC_contractsContractInfo")
+ 	self.frCon.detailsList:applyProfile("BC_contractsDetailsList")
+
+ -- add field "profit" to all listItems
+	local time = self.frCon.contractsList.cellDatabase.autoCell1:getDescendantByName("time")
+	local profit = time:clone(self.frCon.contractsList.cellDatabase.autoCell1)
+	profit.name = "profit"
+	profit:setPosition(-50/2560 *g_aspectScaleX,  80/1440 *g_aspectScaleY) 	-- 
+	profit.textBold = false
+	profit:applyProfile("BCprofit")
+	profit:setVisible(true)
+
+ -- set controls for npcbox, sortbox and their elements:
+	--for _, name in pairs(SC.CONTROLS) do
+	--	self.my[name] = self.frCon.detailsBox:getDescendantById(name)
+	--end
+	-- set controls for contractBox:
+	for _, name in pairs(SC.CONTBOX) do
+		self.my[name] = self.frCon.contractBox:getDescendantById(name)
+	end
+	-- set callbacks for our 5 sort buttons
+	for _, name in ipairs({"sortcat", "sortrev", "sortnpc", "sortprof", "sortpmin"}) do
+		self.my[name] = self.frCon.contractsListBox:getDescendantById(name)
+		self.my[name].onClickCallback = onClickSortButton
+		self.my[name].onHighlightCallback = onHighSortButton
+		self.my[name].onHighlightRemoveCallback = onRemoveSortButton
+		self.my[name].onFocusCallback = onHighSortButton
+		self.my[name].onLeaveCallback = onRemoveSortButton
+	end
+	self.my.helpsort = self.frCon.contractsListBox:getDescendantById("helpsort")
+
+	-- setupMissionFilter(self)
+	-- add field "owner" to InGameMenuMapFrame farmland view:
+	-- init other farms mission table
+end
 function onFrameOpen(self)
 	-- appended to InGameMenuContractsFrame:onFrameOpen
 	local bc = BetterContracts
@@ -116,26 +211,20 @@ function onFrameOpen(self)
 	--FocusManager:unsetFocus(self.frCon.contractsList)  -- to allow focus movement
 
  	local newContracts = self.subCategorySelector.state == 1
-	inGameMenu.newButton:setVisible(newContracts)
-	inGameMenu.clearButton:setVisible(newContracts and 
+	bc.newButton:setVisible(newContracts)
+	bc.clearButton:setVisible(newContracts and 
 	  self.sectionContracts[1][1]) -- at least 1 section new
 
-	inGameMenu.detailsButton = inGameMenu.menuButton[6]
-
-	if not inGameMenu.detailsButton:getIsVisible() then
-		inGameMenu.detailsButton = inGameMenu.menuButton[5]
-	end
 	-- if we were sorted on last frame close, focus the corresponding sort button
 	if bc.isOn and bc.sort > 0 then
 		bc:radioButton(bc.sort)
 	end
 end
 function onFrameClose()
-	local inGameMenu = g_inGameMenu
+	local bc = BetterContracts
 	for _, button in ipairs(
-		{	inGameMenu.newButton,
-			inGameMenu.clearButton,
-			inGameMenu.detailsButton
+		{	bc.newButton,
+			bc.clearButton
 		}) do
 		button:setVisible(false)
 	end
@@ -143,10 +232,11 @@ end
 function onChangeSubCategory(self,element)
 	-- overwritten to InGameMenuContractsFrame:onChangeSubCategory()
 	-- switch visibility of our menu buttons
+	local bc = BetterContracts
  	local newContracts = self.subCategorySelector.state == 1
  	debugPrint("** onChangeSubCategory, newContracts %s", newContracts)
-	g_inGameMenu.newButton:setVisible(newContracts)
-	g_inGameMenu.clearButton:setVisible(newContracts and 
+	bc.newButton:setVisible(newContracts)
+	bc.clearButton:setVisible(newContracts and 
 	  self.sectionContracts[1][1]) -- at least 1 section in new contracts
 
 	g_inGameMenu.pageContracts:onChangeSubCategory(element)
@@ -160,80 +250,78 @@ function setButtonsForState(self,state)
 	end
 	bc.detailsButtonInfo.text = text 
 	table.insert(self.menuButtonInfo, bc.detailsButtonInfo)
-	--[[
-	if state == InGameMenuContractsFrame.BUTTON_STATE.EMPTY or 
-	   state == InGameMenuContractsFrame.BUTTON_STATE.POSSIBLE then 
-		table.insert(self.menuButtonInfo, bc.clearButtonInfo)
-		table.insert(self.menuButtonInfo, bc.newButtonInfo)
-	end
-	]]
 end
 
 function onClickMenuExtra1(inGameMenu, superFunc, ...)
+	local bc = BetterContracts
 	if superFunc ~= nil then
 		superFunc(inGameMenu, ...)
 	end
-	if inGameMenu.newButton ~= nil then
-		inGameMenu.newButton.onClickCallback(inGameMenu)
+	if bc.newButton ~= nil then
+		bc.newButton.onClickCallback(inGameMenu)
 	end
 end
 function onClickMenuExtra2(inGameMenu, superFunc, ...)
+	local bc = BetterContracts
 	if superFunc ~= nil then
 		superFunc(inGameMenu, ...)
 	end
-	if inGameMenu.clearButton ~= nil then
-		inGameMenu.clearButton.onClickCallback(inGameMenu)
+	if bc.clearButton ~= nil then
+		bc.clearButton.onClickCallback(inGameMenu)
 	end
 end
 function onClickMenuExtra3(inGameMenu)
-	---Due to how the input system works in fs22, the input is not only handled
-	-- with a click callback but also via these events
-	if inGameMenu.detailsButton ~= nil then
-		inGameMenu.detailsButton.onClickCallback(inGameMenu)
-		inGameMenu:playSample(GuiSoundPlayer.SOUND_SAMPLES.CLICK)
-	end
+	-- do we stil need this?
 end
-
 function onClickNewContractsCallback(inGameMenu)
 	BetterContractsNewEvent.sendEvent()
 end
 function onClickClearContractsCallback(inGameMenu)
 	BetterContractsClearEvent.sendEvent()
 end
-function detailsButtonCallback(inGameMenu)
+function detailsButtonCallback(inGameMenu, detailsButton)
 	local self = BetterContracts
 	local frCon = self.frCon
 
 	-- it's a toggle button - change my "on" state
 	self.isOn = not self.isOn
- --[[
-	self.my.npcbox:setVisible(self.isOn)
+	--self.my.npcbox:setVisible(self.isOn)
 	self.my.sortbox:setVisible(self.isOn)
- ]]
+
+	if inGameMenu == nil then  -- were called from input action (key D)
+		detailsButton = nil 
+		-- find our details button:
+		for _, button in ipairs(g_inGameMenu.menuButton) do
+			if button.text:sub(1,2) == "BC" then 
+				detailsButton = button 
+				break
+			end
+		end
+		if detailsButton == nil then  
+			Logging.error("[%s] did not find detailsButton", self.name)
+			return
+		end
+	end
+
 	if self.isOn then
-		inGameMenu.detailsButton:setText(g_i18n:getText("bc_detailsOff"))
+		detailsButton:setText(g_i18n:getText("bc_detailsOff"))
 		
 		-- if we were sorted on last "off" click, then one of our sort buttons might still have focus
-		--[[^^
 		if self.lastSort > 0 then
 			FocusManager:setFocus(frCon.contractsList, "top") -- remove focus from our sort buttton
-		end]]
+		end
 	else
-		inGameMenu.detailsButton:setText(g_i18n:getText("bc_detailsOn"))
+		detailsButton:setText(g_i18n:getText("bc_detailsOn"))
 		-- "off" always resets sorting to default
-		--[[^^
 		if self.sort > 0 then
 			self:radioButton(0) -- reset all sort buttons
 		end
 		self.my.helpsort:setText("")
-		]]
 	end
- --[[
 	frCon:updateList() -- restore standard sort order
-	-- refresh farmerBox
+	-- refresh detailsBox
 	local s, i = frCon.contractsList:getSelectedPath()
 	frCon:updateDetailContents(s, i)
- ]]
 end
 function formatReward(x)
 	-- return g_i18n:formatMoney(), but special handling for big values >100k

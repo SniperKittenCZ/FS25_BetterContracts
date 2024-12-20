@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <modDesc descVersion="93">
     <author>Mmtrx</author>
-    <version>1.0.0.0</version>
+    <version>1.0.1.1</version>
     <title>
         <en>Better Contracts</en>
     </title>
@@ -17,6 +17,8 @@ First version for FS25. Just contains the basic functions
 - unlimited number of active contracts (You can set he limit by editing FS25_BetterContracts.xml in the corresponding savegame directory, changing parameter "maxActive". The file is written when you save a game with this mod active.)
 
 I plan to implement additional functions in next releases of the mod.
+
+ChangeLog v1.0.1.1:
 
 GitHub link: https://github.com/Mmtrx/FS25_BetterContracts
 ]]>

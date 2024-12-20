@@ -45,6 +45,31 @@
 			<textBold value="false"/>
 		</Trait>
 	</Traits>
+
+	<!-- Larger Details List  - - - - - - - - - - - - - - - - - - - - - -  -->
+	<Profile name="BC_contractsFarmerBox" extends="emptyPanel" with="anchorTopLeft">
+		<size value="470px 300px"/>
+	</Profile>
+	<Profile name="BC_contractsFarmerImage" extends="fs25_contractsFarmerImage" >
+		<size value="260px 260px"/>
+		<position value="0px 0px"/>
+	</Profile>
+	<Profile name="BC_contractsContractBox" extends="fs25_contractsContractBox" >
+		<absoluteSizeOffset value="0px 300px"/>
+		<position value="0px -300px"/>
+	</Profile>
+	<Profile name="BC_contractsContractInfoTitle" extends="fs25_contractsContractInfoTitle" >
+		<position value="0px -34px"/>
+	</Profile>
+	<Profile name="BC_contractsContractInfo" extends="fs25_contractsContractInfo" >
+		<position value="0px -60px"/>
+	</Profile>
+	<Profile name="BC_contractsDetailsList" extends="fs25_contractsDetailsList" >
+		<size value="100% 320px"/>
+		<position value="0px -120px"/>
+		<debugEnabled value="true"/>
+	</Profile>
+
 	<!-- Display Text  - - - - - - - - - - - - - - - - - - - - - -  -->
 	<Profile name="BCprofit" extends="fs25_textDarkHighlight" with="anchorBottomRight">
 		<textAlignment value="right"/>

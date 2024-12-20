@@ -8,6 +8,7 @@
 -- Changelog:
 --  v1.0.0.0    28.10.2024  1st port to FS25
 --  v1.0.1.0    10.12.2024  some details, sort list
+--  v1.0.1.1    20.12.2024  fix details button, enlarge contract details list
 --=======================================================================================================
 SC = {
 	FERTILIZER = 1, -- prices index
@@ -289,6 +290,7 @@ function hookFunctions()
 	-- get addtnl mission values from server:
 	Utility.appendedFunction(HarvestMission, "writeStream", BetterContracts.writeStream)
 	Utility.appendedFunction(HarvestMission, "readStream", BetterContracts.readStream)
+	Utility.appendedFunction(HarvestMission, "onSavegameLoaded", onSavegameLoaded)
 	-- flexible mission limit: 
 	Utility.overwrittenFunction(MissionManager, "hasFarmReachedMissionLimit", hasFarmReachedMissionLimit)
 	-- possibly generate more than 1 mission : 
@@ -313,85 +315,6 @@ function hookFunctions()
 	Utility.overwrittenFunction(InGameMenuContractsFrame, "startContract", startContract)
 	Utility.appendedFunction(InGameMenu, "updateButtonsPanel", updateButtonsPanel)
 	]]
-end
-function initGui(self)
-	if not self:loadGUI(self.directory .. "gui/") then
-		Logging.warning("'%s.Gui' failed to load! Supporting files are missing.", self.name)
-	else
-		debugPrint("-------- gui loaded -----------")
-	end
-	-- add new buttons
-	self.detailsButtonInfo = {
-		inputAction = InputAction.MENU_EXTRA_3,
-		text = g_i18n:getText("bc_detailsOn"),
-		callback = detailsButtonCallback
-	}
-	-- register action, so that our button is also activated by keystroke
-	local _, eventId = g_inputBinding:registerActionEvent("MENU_EXTRA_3", g_inGameMenu, onClickMenuExtra3, false, true, false, true)
-	self.eventExtra3 = eventId
-
-	-- setup new / clear buttons for contracts page:
-	local parent = g_inGameMenu.menuButton[1].parent
-	local button = g_inGameMenu.menuButton[1]:clone(parent)
-	button.onClickCallback = onClickNewContractsCallback
-	button:setText(g_i18n:getText("bc_new_contracts"))
-	button:setInputAction("MENU_EXTRA_1")
-	g_inGameMenu.newButton = button 
-	
-	button = g_inGameMenu.menuButton[1]:clone(parent)
-	button.onClickCallback = onClickClearContractsCallback
-	button:setText(g_i18n:getText("bc_clear_contracts"))
-	button:setInputAction("MENU_EXTRA_2")
-	g_inGameMenu.clearButton = button 
-
-	Utility.overwrittenFunction(g_inGameMenu,"onClickMenuExtra1",onClickMenuExtra1)
-	Utility.overwrittenFunction(g_inGameMenu,"onClickMenuExtra2",onClickMenuExtra2)
-
-	-- inform us on subCategoryChange:
-	self.frCon.subCategorySelector.onClickCallback = onChangeSubCategory
-
- --[[
-	self:fixInGameMenuPage(self.settingsPage, "pageBCSettings", "gui/ui_2.dds",
-			{0, 0, 64, 64}, {256,256}, nil, function () 
-				if g_currentMission.missionDynamicInfo.isMultiplayer then
-					return g_currentMission.isMasterUser 
-				end
-				return true
-				end)
-	loadIcons(self)
-	]]
-	------------------- setup my display elements -------------------------------------
- -- add field "profit" to all listItems
-	local time = self.frCon.contractsList.cellDatabase.autoCell1:getDescendantByName("time")
-	local profit = time:clone(self.frCon.contractsList.cellDatabase.autoCell1)
-	profit.name = "profit"
-	profit:setPosition(-50/2560 *g_aspectScaleX,  80/1440 *g_aspectScaleY) 	-- 
-	profit.textBold = false
-	profit:applyProfile("BCprofit")
-	profit:setVisible(true)
-
- -- set controls for npcbox, sortbox and their elements:
-	--for _, name in pairs(SC.CONTROLS) do
-	--	self.my[name] = self.frCon.detailsBox:getDescendantById(name)
-	--end
-	-- set controls for contractBox:
-	for _, name in pairs(SC.CONTBOX) do
-		self.my[name] = self.frCon.contractBox:getDescendantById(name)
-	end
-	-- set callbacks for our 5 sort buttons
-	for _, name in ipairs({"sortcat", "sortrev", "sortnpc", "sortprof", "sortpmin"}) do
-		self.my[name] = self.frCon.contractsListBox:getDescendantById(name)
-		self.my[name].onClickCallback = onClickSortButton
-		self.my[name].onHighlightCallback = onHighSortButton
-		self.my[name].onHighlightRemoveCallback = onRemoveSortButton
-		self.my[name].onFocusCallback = onHighSortButton
-		self.my[name].onLeaveCallback = onRemoveSortButton
-	end
-	self.my.helpsort = self.frCon.contractsListBox:getDescendantById("helpsort")
-
-	-- setupMissionFilter(self)
-	-- add field "owner" to InGameMenuMapFrame farmland view:
-	-- init other farms mission table
 end
 function BetterContracts:initialize()
 	debugPrint("[%s] initialize(): %s", self.name,self.initialized)
@@ -498,14 +421,21 @@ function generateMission(self, superf)
 	  	end
    end
 end
+function onSavegameLoaded(self)
+	-- appended to HarvestMission:onSavegameLoaded()
+	-- add selling station fruit price to harvest mission. Really needed?
+	self.info.price = BetterContracts:getFilltypePrice(self)
+end
 function BetterContracts:getFilltypePrice(m)
 	-- get price for harvest/ mow-bale missions
-	if m.pendingSellingStationId ~= nil then
+	if  m.sellingStation == nil then
 		m:tryToResolveSellingStation()
 	end
 	if m.sellingStation == nil then
-		Logging.warning("[%s]:addMission(): contract '%s %s on field %s' has no sellingStation.", 
-			self.name, m.title, self.ft[m.fillTypeIndex].title, m.field:getName())
+		-- can happen when mission loaded from savegame xml. Selling stations are 
+		-- only added after "savegameLoaded"
+		--Logging.warning("[%s]:addMission(): contract '%s %s on field %s' has no sellingStation.", 
+		--	self.name, m.title, self.ft[m.fillTypeIndex].title, m.field:getName())
 		return 0
 	end
 	-- check for Maize+ (or other unknown) filltype
@@ -531,7 +461,7 @@ function addMission(self, mission)
 	local bc = BetterContracts
 	local info =  mission.info 					-- store our additional info
 	if mission.field ~= nil then
-		debugPrint("** add %s mission on field %s", mission.type.name, mission.field:getName())
+		debugPrint("** add %s on field %s", mission.type.name, mission.field:getName())
 		local size = mission.field:getAreaHa()
 		info.worktime = size * 600  	-- (sec) 10 min/ha, TODO: make better estimate
 		info.profit = 0
@@ -544,7 +474,7 @@ function addMission(self, mission)
 			info.usage = size * bc.sprUse[SC.HERBICIDE] *36000
 			info.profit = -info.usage * bc.prices[SC.HERBICIDE] /1000
 		elseif mission.type.name == "sowMission" then
-			info.usage = size *g_fruitTypeManager:getFruitTypeByIndex(mission.fruitType).seedUsagePerSqm *10000
+			info.usage = size *g_fruitTypeManager:getFruitTypeByIndex(mission.fruitTypeIndex).seedUsagePerSqm *10000
 			info.profit = -info.usage * bc.prices[SC.SEEDS] /1000
 		elseif mission.type.name == "harvestMission" then
 			if mission.expectedLiters == nil then
@@ -564,13 +494,20 @@ function addMission(self, mission)
 end
 function getLocation(self, superf)
 	--overwrites AbstractFieldMission:getLocation()
-	local fieldId = self.field:getName()
-	return string.format("F. %s - %s",fieldId, self.title)
+	if BetterContracts.isOn then
+		local fieldId = self.field:getName()
+		return string.format("F. %s - %s",fieldId, self.title)
+	else
+		return superf(self)
+	end
 end
 function fieldGetDetails(self, superf)
 	--overwrites AbstractFieldMission:getDetails()
 	local list = superf(self)
-
+	if not BetterContracts.isOn then  
+		return list
+	end
+	-- add our values to show in contract details list
 	table.insert(list, {
 		title = g_i18n:getText("SC_worktim"),
 		value = g_i18n:formatMinutes(self.info.worktime /60)
@@ -595,6 +532,10 @@ function harvestGetDetails(self, superf)
 	--overwrites HarvestMission:getDetails()
 
 	local list = superf(self)
+	if not BetterContracts.isOn then  
+		return list
+	end
+	-- add our values to show in contract details list
 	local price = BetterContracts:getFilltypePrice(self)
 	local deliver = self.expectedLiters - self.info.keep
 
@@ -632,7 +573,7 @@ function harvestGetDetails(self, superf)
 		table.insert(list, eta)
 		eta = {
 			["title"] = g_i18n:getText("SC_price"),
-			["value"] = g_i18n:formatMoney(price)
+			["value"] = g_i18n:formatMoney(price*1000)
 		}
 		table.insert(list, eta)
 	end
