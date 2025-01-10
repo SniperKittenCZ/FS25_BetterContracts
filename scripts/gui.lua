@@ -8,8 +8,9 @@
 -- Changelog:
 --  v1.0.0.0    28.10.2024  1st port to FS25
 --  v1.0.1.0    10.12.2024  some details
+--  v1.1.0.0    08.01.2025  UI settings page, discount mode
 --=======================================================================================================
-
+-- calculate real size from pixel value: 140*g_pixelSizeScaledX
 function loadIcons(self)
 	-- maybe later use
 	local iconFile = Utils.getFilename("gui/ui_2.dds", self.directory)
@@ -68,26 +69,18 @@ function loadGUI(self, guiPath)
 		-- position mission table:
 		--fixPosition(parent:getDescendantById("container"))
 	end)
-	-- load filter buttons
-  --[[
-	if canLoad then 
-		canLoad = loadGuiFile(self, guiPath.."filterGui.xml", self.frCon.contractsContainer, function(parent)
-			fixPosition(parent:getDescendantById("filterlayout"), true)
-			fixPosition(parent:getDescendantById("hidden"))
-		end)
-	end
-	-- load progress bars
-	if canLoad then 
-		canLoad = loadGuiFile(self, guiPath.."progressGui.xml", self.frCon.contractBox, function(parent)
-			for _,id in ipairs({"box1","box2"}) do
-				fixPosition(parent:getDescendantById(id), true)
-			end
-		end)
-	end
 	if not canLoad then return false end 
-	-- load "BCsettingsPage.lua"
-	if g_gui ~= nil and g_gui.guis.BCSettingsFrame == nil then
-		local luaPath = guiPath .. "BCsettingsPage.lua"
+
+	-- load settings page controller "SettingsManager.lua"
+	if g_gui ~= nil then
+		local luaPath = guiPath .. "SettingsManager.lua"
+		if fileExists(luaPath) then
+			source(luaPath)
+		else
+			Logging.error("[GuiLoader %s]  Required file '%s' could not be found!", self.name, luaPath)
+			return false
+		end
+		luaPath = guiPath .. "UIHelper.lua"
 		if fileExists(luaPath) then
 			source(luaPath)
 		else
@@ -95,19 +88,7 @@ function loadGUI(self, guiPath)
 			return false
 		end
 	end
-	-- load "settingsPage.xml"
-	fname = guiPath .. "settingsPage.xml"
-	if fileExists(fname) then
-		self.settingsPage = BCSettingsPage:new()
-		if g_gui:loadGui(fname, "BCSettingsFrame", self.settingsPage, true) == nil then
-			Logging.error("[GuiLoader %s]  Error loading SettingsPage", self.name)
-			return false
-		end
-	else
-		Logging.error("[GuiLoader %s]  Required file '%s' could not be found!", self.name, fname)
-		return false
-	end
-  ]]
+	self.settingsMgr = SettingsManager:new()
 	return canLoad
 end
 function initGui(self)
@@ -132,12 +113,14 @@ function initGui(self)
 	button.onClickCallback = onClickNewContractsCallback
 	button:setText(g_i18n:getText("bc_new_contracts"))
 	button:setInputAction("MENU_EXTRA_1")
+	button:setVisible(false)
 	self.newButton = button 
 	
 	button = g_inGameMenu.menuButton[1]:clone(parent)
 	button.onClickCallback = onClickClearContractsCallback
 	button:setText(g_i18n:getText("bc_clear_contracts"))
 	button:setInputAction("MENU_EXTRA_2")
+	button:setVisible(false)
 	self.clearButton = button 
 
 	Utility.overwrittenFunction(g_inGameMenu,"onClickMenuExtra1",onClickMenuExtra1)
@@ -146,21 +129,17 @@ function initGui(self)
 	-- inform us on subCategoryChange:
 	self.frCon.subCategorySelector.onClickCallback = onChangeSubCategory
 
- --[[
-	self:fixInGameMenuPage(self.settingsPage, "pageBCSettings", "gui/ui_2.dds",
-			{0, 0, 64, 64}, {256,256}, nil, function () 
-				if g_currentMission.missionDynamicInfo.isMultiplayer then
-					return g_currentMission.isMasterUser 
-				end
-				return true
-				end)
-	loadIcons(self)
-	]]
+	self.settingsMgr = SettingsManager:new()
+	self.settingsMgr:init()  		-- init our settings page controller
+	--loadIcons(self)
 	------------------- setup my display elements -------------------------------------
  -- enlarge contract details listbox
 	self.frCon.farmerBox:applyProfile("BC_contractsFarmerBox")
 	self.frCon.farmerImage:applyProfile("BC_contractsFarmerImage")
-	--self.frCon.farmerName:applyProfile("BC_contractsFarmerName")
+	self.frCon.farmerName:applyProfile("BC_contractsFarmerName")
+	local npcJobs = self.frCon.farmerName:clone(self.frCon.farmerBox)
+	npcJobs:applyProfile("BCnpcJobs")
+	self.my.npcJobs = npcJobs
 
 	self.frCon.contractBox:applyProfile("BC_contractsContractBox")
 	local desc = self.frCon.contractBox:getDescendants(function(elem)
@@ -180,6 +159,34 @@ function initGui(self)
 	profit.textBold = false
 	profit:applyProfile("BCprofit")
 	profit:setVisible(true)
+
+ -- add field "owner" to InGameMenuMapFrame farmland view:
+	local box = self.frMap.contextBoxFarmland
+	self.my.contextBoxBg = box:getFirstDescendant(
+		function(e) return e.profile == "fs25_mapContextBoxBgFarmland"
+		end )
+	self.my.contextButtons = box:getDescendantById("contextButtonListFarmland") 
+
+	local titles = box:getDescendants(
+		function(e) return e.profile == "fs25_mapContextFarmlandTitle"
+		end )
+	self.my.title = {}
+	self.my.title.size = titles[1]
+	self.my.title.value = titles[2]
+	self.my.title.owner = titles[1]:clone(box)
+	self.my.title.owner:applyProfile("BC_ownerTitle")
+
+	self.my.text = {}
+	self.my.text.size = box:getDescendantByName("farmlandSize")
+	self.my.text.value = box:getDescendantByName("farmlandValue")
+	self.my.text.owner = self.my.text.size:clone(box)
+	self.my.text.owner:applyProfile("BC_ownerText")
+
+	self:discountVisible(false)
+
+	self.frMap.contextActions[InGameMenuMapFrame.ACTIONS.BUY].callback = onClickBuyFarmland
+	--self.frMap.farmlandValueBox:setSize(unpack(GuiUtils.getNormalizedValues(
+	--		"1000px", {g_referenceScreenWidth,g_referenceScreenHeight})))
 
  -- set controls for npcbox, sortbox and their elements:
 	--for _, name in pairs(SC.CONTROLS) do
@@ -201,8 +208,30 @@ function initGui(self)
 	self.my.helpsort = self.frCon.contractsListBox:getDescendantById("helpsort")
 
 	-- setupMissionFilter(self)
-	-- add field "owner" to InGameMenuMapFrame farmland view:
 	-- init other farms mission table
+end
+function BetterContracts:discountVisible(visible)
+	-- change visibility for our addtnl farmland context box elements
+	local profile = visible and "BC_mapContextBoxBgFarmland" or "fs25_mapContextBoxBgFarmland"
+	self.my.contextBoxBg:applyProfile(profile)
+
+	profile = visible and "BC_mapContextButtonList" or "fs25_mapContextButtonList"
+	self.my.contextButtons:applyProfile(profile)
+
+	profile = visible and "BC_sizeTitle" or "fs25_mapContextFarmlandTitle"
+	self.my.title.size:applyProfile(profile)
+
+	profile = visible and "BC_sizeText" or "fs25_mapContextFarmlandValue"
+	self.my.text.size:applyProfile(profile)
+
+	profile = visible and "BC_valueTitle" or "fs25_mapContextFarmlandTitle"
+	self.my.title.value:applyProfile(profile)
+
+	profile = visible and "BC_valueText" or "fs25_mapContextFarmlandValue"
+	self.my.text.value:applyProfile(profile)
+
+	self.my.title.owner:setVisible(visible)
+	self.my.text.owner:setVisible(visible)
 end
 function onFrameOpen(self)
 	-- appended to InGameMenuContractsFrame:onFrameOpen
@@ -250,6 +279,7 @@ function setButtonsForState(self,state)
 	end
 	bc.detailsButtonInfo.text = text 
 	table.insert(self.menuButtonInfo, bc.detailsButtonInfo)
+	bc.detailsButton = #self.menuButtonInfo
 end
 
 function onClickMenuExtra1(inGameMenu, superFunc, ...)
@@ -289,20 +319,8 @@ function detailsButtonCallback(inGameMenu, detailsButton)
 	self.my.sortbox:setVisible(self.isOn)
 
 	if inGameMenu == nil then  -- were called from input action (key D)
-		detailsButton = nil 
-		-- find our details button:
-		for _, button in ipairs(g_inGameMenu.menuButton) do
-			if button.text:sub(1,2) == "BC" then 
-				detailsButton = button 
-				break
-			end
-		end
-		if detailsButton == nil then  
-			Logging.error("[%s] did not find detailsButton", self.name)
-			return
-		end
+		detailsButton = g_inGameMenu.menuButton[self.detailsButton]
 	end
-
 	if self.isOn then
 		detailsButton:setText(g_i18n:getText("bc_detailsOff"))
 		
@@ -490,19 +508,52 @@ function sortList(self, superfunc)
 		end
 	end
 end
+function updateFarmersBox(self, field, npc)
+	local bc = BetterContracts
+	-- hide farmerBox when our mapTable is shown:
+	--self.farmerBox:setVisible(not self.mapTableOn)
+	bc.my.npcJobs:setVisible(false)
+	if not bc.isOn then return end
+
+	-- find the current contract - not used yet
+	local sec, ix = self.contractsList:getSelectedPath()
+	local section = self.sectionContracts[self.subCategorySelector:getState()][sec]
+	local cont, m = nil, nil
+	if section ~= nil then cont = section.contracts[ix] end
+	if cont ~= nil then m = cont.mission end
+	if m == nil then
+		Logging.error("**BetterContracts:updateFarmersBox() - no contract found")
+		return
+	end
+	-- show # of completed jobs
+	if field ~= nil and npc ~= nil then 
+		local farm =  g_farmManager:getFarmById(g_localPlayer.farmId)
+		if farm.stats.npcJobs == nil then 
+			farm.stats.npcJobs = {}
+		end
+		local jobs = farm.stats.npcJobs
+		if jobs[npc.index] == nil then 
+			jobs[npc.index] = 0
+		end 
+		if jobs[npc.index] > 0 then 
+			local txt = string.format(g_i18n:getText("bc_jobsCompleted"), jobs[npc.index])
+			bc.my.npcJobs:setText(txt)
+			bc.my.npcJobs:setVisible(true)
+		end
+	end	
+end
 function updateButtonsPanel(menu, page)
 	-- called by TabbedMenu.onPageChange(), after page:onFrameOpen()
-	local inGameMenu = BetterContracts.gameMenu
-	if page.id ~= "pageContracts" or inGameMenu.newButton == nil 
-		or not g_currentMission.missionDynamicInfo.isMultiplayer then
-		return end 
+	local bc = BetterContracts
+	if page.id ~= "pageContracts" or not g_currentMission.missionDynamicInfo.isMultiplayer 
+		then return end 
 	-- disable buttons according to setting refreshMP
-	local refresh = BetterContracts.config.refreshMP
+	local refresh = bc.config.refreshMP
 	local enable = g_currentMission.isMasterUser or refresh == SC.PLAYER  
 		or refresh == SC.FARMMANAGER and g_currentMission:getHasPlayerPermission("farmManager")  
 
-	inGameMenu.newButton:setDisabled(not enable)
-	inGameMenu.clearButton:setDisabled(not enable)
+	bc.newButton:setDisabled(not enable)
+	bc.clearButton:setDisabled(not enable)
 end
 function BetterContracts:radioButton(st)
 	-- implement radiobutton behaviour: max. one sort button can be active
@@ -563,4 +614,16 @@ function onRemoveSortButton(frCon, button)
 	else
 		self.my.helpsort:setText(self.buttons[self.sort][2])
 	end
+end
+-------------------------------------------- vehicle box -------------------------------
+function onClickToggle(frCon)
+	-- toggles display of other farms mission table, can only be called in MP game
+	self = BetterContracts
+	local stat = not self.mapTableOn
+	self.mapTableOn = stat
+	if stat then 
+		updateMTable(self)
+	end
+	self.my.container:setVisible(stat)
+	frCon.farmerBox:setVisible(not stat)
 end

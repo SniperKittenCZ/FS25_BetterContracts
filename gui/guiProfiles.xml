@@ -5,6 +5,7 @@
 	Author:      Mmtrx       
 	Changelog:
 	  v1.0.0.0    28.10.2024  1st port to FS25
+	  v1.1.0.0    08.01.2025  UI settings page, discount mode
 =======================================================================================================-->
 <GUIProfiles>
 	<Presets>
@@ -54,6 +55,14 @@
 		<size value="260px 260px"/>
 		<position value="0px 0px"/>
 	</Profile>
+	<Profile name="BC_contractsFarmerName" extends="fs25_contractsFarmerName" >
+		<size value="100% 20px"/>
+		<absoluteSizeOffset value="56px 0px"/>
+		<textSize value="20px"/>
+		<textBold value="false"/>
+		<textUpperCase value="true"/>
+		<textAlignment value="left"/>
+	</Profile>
 	<Profile name="BC_contractsContractBox" extends="fs25_contractsContractBox" >
 		<absoluteSizeOffset value="0px 300px"/>
 		<position value="0px -300px"/>
@@ -67,10 +76,16 @@
 	<Profile name="BC_contractsDetailsList" extends="fs25_contractsDetailsList" >
 		<size value="100% 320px"/>
 		<position value="0px -120px"/>
-		<debugEnabled value="true"/>
 	</Profile>
 
 	<!-- Display Text  - - - - - - - - - - - - - - - - - - - - - -  -->
+	<Profile name="BCnpcJobs" extends="BC_contractsFarmerName" >
+		<textSize value="16px"/>
+		<textBold value="false"/>
+		<textUpperCase value="false"/>
+		<textAlignment value="right"/>
+		<debugEnabled value="false"/>
+	</Profile>
 	<Profile name="BCprofit" extends="fs25_textDarkHighlight" with="anchorBottomRight">
 		<textAlignment value="right"/>
 		<textBold value="true"/>
@@ -87,6 +102,38 @@
 		<textAlignment value="right" />
 	</Profile>
 
+	<!-- Farmland Box: Owner, Discount - - - - - - - - - - - - - -  -->
+	<Profile name="BC_ownerTitle" extends="fs25_mapContextFarmlandTitle" >
+		<position value="0 -132px"/>
+	</Profile>
+	<Profile name="BC_ownerText" extends="BC_ownerTitle">
+		<textBold value="false"/>
+		<textAlignment value="right"/>
+	</Profile>
+	<Profile name="BC_sizeTitle" extends="BC_ownerTitle" >
+		<position value="0 -72px"/>
+	</Profile>
+	<Profile name="BC_sizeText" extends="BC_sizeTitle">
+		<textBold value="false"/>
+		<textAlignment value="right"/>
+	</Profile>
+	<Profile name="BC_valueTitle" extends="BC_ownerTitle" >
+		<position value="0 -102px"/>
+	</Profile>
+	<Profile name="BC_valueText" extends="BC_valueTitle">
+		<textBold value="false"/>
+		<textAlignment value="right"/>
+	</Profile>
+
+	<Profile name="BC_mapContextBoxBgFarmland" extends="fs25_mapContextBoxBgFarmland">
+		<absoluteSizeOffset value="-29px 0px"/>
+		<position value="-10px -20px"/>
+	</Profile>
+	<Profile name="BC_mapContextButtonList" extends="fs25_mapContextButtonList">
+		<height value="200px"/>
+		<position value="0px -214px"/>
+	</Profile>
+	
 	<!-- Sortbox Frame   - - - -0 1px 1px 0dp- - - - - - - - - - -  -->
 	<Profile name="BCSortbox" extends="emptyPanel">
 		<hasFrame value="true" />

@@ -1,55 +1,75 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <modDesc descVersion="93">
     <author>Mmtrx</author>
-    <version>1.0.1.1</version>
+    <version>1.1.0.0</version>
     <title>
         <en>Better Contracts</en>
     </title>
     <description>
         <en>
             <![CDATA[
-First version for FS25. Just contains the basic functions
+Port of FS22_BetterContracts
 
-- clear list of available contracts 
-
-- generate new contracts 
-
-- unlimited number of active contracts (You can set he limit by editing FS25_BetterContracts.xml in the corresponding savegame directory, changing parameter "maxActive". The file is written when you save a game with this mod active.)
-
-I plan to implement additional functions in next releases of the mod.
+ChangeLog v1.1.0.0:
+- fix MP errors
+- UI settings page
+- discount mode enabled
 
 ChangeLog v1.0.1.1:
 - fix details button
 - enlarge contract details list
 - new icon (courtesy DrDrulia)
 
+ChangeLog v1.0.0.0
+- clear list of available contracts 
+- generate new contracts 
+
 GitHub link: https://github.com/Mmtrx/FS25_BetterContracts
+I plan to implement additional functions in next releases of the mod.
 ]]>
         </en>
         <de>
             <![CDATA[
-Erste Version für FS25, die nur die Basisfunktionen enthält
+Portierung von FS22_BetterContracts
 
+Changelog v1.1.0.0
+- Fix Multiplayer
+- UI Menu für Einstellungen
+- Rabatt-Mode aktiviert
+
+Changelog v1.0.1.1
+- Fix (D)etails-Button
+- Vergrößerung der Liste mit Auftragsdetails
+- Neues Icon 
+
+Changelog v1.0.0.0
 - Löschen der Auftragsliste
-
 - Erzeugen neuer Aufträge
 
-- Beliebig viele aktive Aufträge (Sie können die Maximalzahl in der Datei FS25_BetterContracts.xml im entsprechenden Savegame-Verzeichnis anpassen, Parameter "maxActive". Die Datei wird beim Speichern des Spiels erzeugt, wenn diese Mod aktiv ist.)
-
 Weitere Funktionen sind für die Zukunft geplant.
-
 GitHub link: https://github.com/Mmtrx/FS25_BetterContracts
 ]]>
         </de>
         <fr>
             <![CDATA[
-Première version pour FS25, qui ne contient que les fonctions de base :
+Portage de FS22_BetterContracts
 
-- Suppression de la liste des contrats proposés
+ChangeLog v1.1.0.0 :
+- Correction des erreurs MP
+- Page de paramétrage de l'interface utilisateur
+- mode de réduction activé
 
-- Création de nouveaux contrats 
+ChangeLog v1.0.1.1 :
+- correction du bouton « détails
+- agrandissement de la liste des détails du contrat
+- nouvelle icône (avec l'aimable autorisation de DrDrulia)
 
-- N'importe quel nombre de contrats actives (vous pouvez modifier le nombre maximum dans le fichier FS25_BetterContracts.xml dans le répertoire de savegame correspondant, paramètre «maxActive». Le fichier est créé lors de la sauvegarde du jeu si ce mod est actif).    
+ChangeLog v1.0.0.0
+- effacer la liste des contrats disponibles 
+- générer de nouveaux contrats 
+
+Lien GitHub : https://github.com/Mmtrx/FS25_BetterContracts
+Je prévois d'implémenter des fonctions supplémentaires dans les prochaines versions du mod.
 ]]>
         </fr>
     </description>

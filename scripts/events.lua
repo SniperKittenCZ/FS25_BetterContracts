@@ -41,10 +41,10 @@ function BetterContractsClearEvent:run(connection)
 				missionsToDelete[i] = mission
 			end
 		end
-		--DebugUtil.printTableRecursively(missionsToDelete)
 
+		debugPrint("BetterContracts deleting missions:" )
 		for i, mission in pairs(missionsToDelete) do
-			debugPrint(" %02d %14s %d", i, mission.title, mission.reward)
+			debugPrint(" %02d %14s %d", i, mission.title, mission:getReward())
 			mission:delete()
 		end
 
@@ -88,8 +88,7 @@ end
 function BetterContractsNewEvent:run(_)
 	if g_server ~= nil then
 		debugPrint("** run Missions NewEvent")
-		local numMissions = #g_missionManager.missions
-			g_missionManager:startMissionGeneration()
+		g_missionManager:startMissionGeneration()
 	end
 end
 function BetterContractsNewEvent.sendEvent()
@@ -115,7 +114,7 @@ function SettingsEvent:writeStream(streamId, connection)
 end
 function SettingsEvent:readStream(streamId, connection)
     local name = streamReadString(streamId)
-    local setting = BetterContracts.settingsByName[name]
+    local setting = BetterContracts.settingsMgr.settingsByName[name]
     setting:readStream(streamId, connection)
     self:run(connection, setting)
 end

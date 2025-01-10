@@ -6,6 +6,7 @@
 -- Author:      Royal-Modding / Mmtrx
 -- Changelog:
 --  v1.0.0.0    28.10.2024  1st port to FS25
+--  v1.1.0.0    08.01.2025  UI settings page, discount mode
 --=======================================================================================================
 
 --------------------- lazyNPC --------------------------------------------------------------------------- 
@@ -102,13 +103,14 @@ function baleCompletion(self,superf)
 end
 function getReward(self,superf)
 	-- overwrites AbstractFieldMission:getReward()
-	if self.type.name == "mow_bale" then
-		return BetterContracts.config.multRewardMow * superf(self)
+	if self.type.name == "mowMission" then
+		return BetterContracts.config.rewardMultiplierMow * superf(self)
 	end		
-	return BetterContracts.config.multReward * superf(self)
+	return BetterContracts.config.rewardMultiplier * superf(self)
 end
 function calcLeaseCost(self,superf)
-	return BetterContracts.config.multLease * superf(self)
+	-- overwrites AbstractMission:getVehicleCosts()
+	return BetterContracts.config.leaseMultiplier * superf(self)
 end
 
 --------------------- manage npc jobs per farm ----------------------------------------------------------
@@ -157,7 +159,7 @@ function farmRead(self, streamId)
 end
 function finish(self, success )
 	-- appended to AbstractFieldMission:finish(success)
-	debugPrint("** finish() %s %s on field %s",success,self.type.name, self.field.fieldId)
+	debugPrint("** finish() %s %s on field %s",success,self.type.name, self.field:getName())
 	local farm =  g_farmManager:getFarmById(self.farmId)
 	if farm.stats.npcJobs == nil then 
 		farm.stats.npcJobs = {}
@@ -247,6 +249,7 @@ function updateDetails(self, section, index)
 	if sectionContracts ~= nil then
 		contract = sectionContracts.contracts[index]
 	end
+	
 	if contract == nil then return end
 	local mission = contract.mission
 
@@ -274,7 +277,7 @@ function updateDetails(self, section, index)
 
 	-- toggle standard / enhanced progress bars
 	bc:showProgressBars(contract, not noActive and 
-		table.hasElement({"harvest","mow_bale", "chaff"}, mission.type.name))
+		table.hasElement({"harvestMission","mow_baleMission", "chaffMission"}, mission.type.name))
 	if noActive then return end 
 
 	-- update display for active contracts
@@ -336,11 +339,7 @@ function startContract(frCon, superf, wantsLease)
 	-- overwrite dialog info box
 	if g_missionManager:hasFarmReachedMissionLimit(farmId) 
 		and BetterContracts.config.maxActive ~= 3 then
-		g_gui:showInfoDialog({
-			visible = true,
-			text = g_i18n:getText("bc_enoughMissions"),
-			dialogType = DialogElement.TYPE_INFO
-		})
+		InfoDialog.show(g_i18n:getText("bc_enoughMissions"))
 		return
 	end
 	-- (hardMode) --
@@ -355,13 +354,8 @@ function startContract(frCon, superf, wantsLease)
 				jobs = farm.stats.npcJobs[npc.index]
 			end
 			if jobs < self.config.hardLease then
-				local txt = string.format(g_i18n:getText("bc_leaseNotEnough"),
-					self.config.hardLease - jobs, npc.title)
-				g_gui:showInfoDialog({
-					visible = true,
-					text = txt,
-					dialogType = DialogElement.TYPE_INFO
-				})
+				InfoDialog.show(string.format(g_i18n:getText("bc_leaseNotEnough"),
+						self.config.hardLease - jobs, npc.title))
 				return
 			end
 		end
@@ -371,11 +365,7 @@ function startContract(frCon, superf, wantsLease)
 				farm.stats.jobsLeft = self.config.hardLimit
 			end
 			if farm.stats.jobsLeft == 0 then 
-				g_gui:showInfoDialog({
-					visible = true,
-					text = g_i18n:getText("bc_monthlyLimit"),
-					dialogType = DialogElement.TYPE_INFO
-				})
+				InfoDialog.show(g_i18n:getText("bc_monthlyLimit"))
 				return
 			else
 				farm.stats.jobsLeft = farm.stats.jobsLeft -1
@@ -445,7 +435,7 @@ function BetterContracts:onHourChanged()
 	local farmId = g_currentMission:getFarmId()
 	local count = 0 
 	for _, m in ipairs(g_missionManager:getActiveMissions()) do 
-		if m:hasField() and m.farmId == farmId then 
+		if m.getField and m.farmId == farmId then 
 			count = count +1
 		end
 	end
@@ -461,18 +451,14 @@ function onButtonCancel(self, superf)
 	local contract = self:getSelectedContract()
 	local m = contract.mission 
 	--local difficulty = 0.7 + 0.3 * g_currentMission.missionInfo.economicDifficulty
-	local text = g_i18n:getText("fieldJob_endContract")
+	local text = g_i18n:getText("contract_end")
 	local reward = m:getReward()
 	if reward then  
 		local penalty = MathUtil.round(reward * bc.config.hardPenalty) 
 		text = text.. g_i18n:getText("bc_warnCancel") ..
 		 g_i18n:formatMoney(penalty, 0, true, true)
 	end
-	g_gui:showYesNoDialog({
-		text = text,
-		callback = self.onCancelDialog,
-		target = self
-	})
+	YesNoDialog.show(self.onCancelDialog, self, text)
 end
 
 --------------------- discount mode --------------------------------------------------------------------- 
@@ -481,90 +467,114 @@ function AbstractFieldMission:getNPC()
 		return g_npcManager:getNPCByIndex(npcIndex)
 end
 function getDiscountPrice(farmland)
+	-- returns discount as delta and percent-text
 	local discPerJob = BetterContracts.config.discPerJob
-	local price = farmland.price
-	local disct = ""
-	local farm =  g_farmManager:getFarmById(g_currentMission.player.farmId)
+	local delta = 0
+	local noFarm = g_i18n:getText("ui_noFarm")  	-- pas de ferme
+	local words = noFarm:split(" ")					
+	local k = noFarm:find(words[#words])			--        ^ 
+	local disct = noFarm:sub(1,k-1) 				-- pas de
+
+	local farm =  g_farmManager:getFarmById(g_localPlayer.farmId)
 	local jobs = farm.stats.npcJobs or {}
 	local count = jobs[farmland.npcIndex] or 0
 	local disJobs = math.min(count, BetterContracts.config.discMaxJobs,
 		math.floor(0.5 / discPerJob))
 
 	if disJobs > 0 then
-		price = price * (1 - disJobs * discPerJob) 		
-		disct = string.format(" (- %d%%)", 100 *disJobs *discPerJob)
+		delta = farmland.price * disJobs * discPerJob		
+		disct = string.format("%d%%", 100 *disJobs *discPerJob)
 	end
-	return price, disct
+	return delta, disct
 end
-function onClickFarmland(self, elem, X, Z)
-	-- appended to InGameMenuMapFrame:onClickMap()
+function showContextBox(box, hotspot, description, image, uvs, farmId, farmText, p27, p28, isFarmBox)
+	-- appended to InGameMenuMapUtil.showContextBox()
+	if box == nil then return end 
+
+  -- add text to farmland context box
 	local bc = BetterContracts
-	bc.my.ownerText:setVisible(false)
-	bc.my.ownerLabel:setVisible(false)
+	local frame = bc.frMap
+	bc:discountVisible(false)
 
-	if not bc.config.discountMode or 
-		self.mode ~= InGameMenuMapFrame.MODE_FARMLANDS then return end 
+	if not bc.config.discountMode or not isFarmBox or 
+		not frame.contextActions[InGameMenuMapFrame.ACTIONS.BUY].isActive
+		then return end 
 
-	local farmland = self.selectedFarmland
-	if farmland == nil or not farmland.showOnFarmlandsScreen
-		or not self.canBuy
-		then return 
-	end
-	local price, disct = getDiscountPrice(farmland)
-	if price <= self.playerFarm:getBalance() then
-		self.farmlandValueText:applyProfile(InGameMenuMapFrame.PROFILE.MONEY_VALUE_NEUTRAL)
-	end	
-	self.farmlandValueText:setText(g_i18n:formatMoney(price, 0, true, true)..disct)
+	local farmland = frame.selectedFarmland
+
 	-- show npc owner:
 	local npc = g_npcManager:getNPCByIndex(farmland.npcIndex)
-	bc.my.ownerText:setText(npc.title)
-	bc.my.ownerText:setVisible(true)
-	bc.my.ownerLabel:setVisible(true)
+	local delta, disct = getDiscountPrice(farmland)
 
-	self.farmlandValueBox:invalidateLayout()
+	local text = string.format("%s: %s %s", npc.title, disct, g_i18n:getText("bc_discount"))
+	bc.my.title.owner:setText(text)
+
+	text = ""
+	if delta > 0 then 
+		text = g_i18n:formatMoney(delta, 0, true)
+	end 
+	bc.my.text.owner:setText(text)
+	bc:discountVisible(true)
+
+	-- Todo: if price-delta < player balance < price, we don't get called here. 
+	-- But Buy Button is displayed anyhow
+
+  -- to change color of vehicle text, if mission vehicle
+	if description and description:sub(-1) == ")" then 
+		text:applyProfile("missionVehicleText")
+	--else text:applyProfile("ingameMenuMapContextText")		
+	end
 end
-function onClickBuyFarmland(self, superf)
+function onClickBuyFarmland(self)
+	--overwrites InGameMenuMapFrame:onClickBuy()
 	-- adjust price if player buys farmland
-	if self.selectedFarmland == nil then return end
+	local bc = BetterContracts
+	if self.selectedFarmland == nil or  
+		g_missionManager:getIsMissionRunningOnFarmland(self.selectedFarmland)
+		then return self:onClickBuy() end
 
 	local discMode = BetterContracts.config.discountMode
 	local price, disct = self.selectedFarmland.price, ""
+	local delta = 0
 
 	if discMode then
-		price, disct = getDiscountPrice(self.selectedFarmland)
+		delta, disct = getDiscountPrice(self.selectedFarmland)
 	end
-	if price <= self.playerFarm:getBalance() then
-		local priceText = self.l10n:formatMoney(price, 0, true, true).. disct
-		local text = string.format(self.l10n:getText(InGameMenuMapFrame.L10N_SYMBOL.DIALOG_BUY_FARMLAND), priceText)
+	if disct ~= "" then 
+		disct = string.format(" (%s %s)", disct, g_i18n:getText("bc_discount")) 
+	end
+
+	if price - delta <= self.playerFarm:getBalance() then
+		local priceText = g_i18n:formatMoney(price-delta, 0, true,true)..disct 
+		local text = string.format(g_i18n:getText(InGameMenuMapFrame.L10N_SYMBOL.DIALOG_BUY_FARMLAND), priceText)
 		local callback, target, args = self.onYesNoBuyFarmland, self, nil
 
 		if discMode then  
 			callback = BetterContracts.onYesNoBuyFarmland
 			target = BetterContracts
-			args = {self.selectedFarmland.id, g_currentMission:getFarmId(), price}
+			args = {self.selectedFarmland.id, g_currentMission:getFarmId(), price-delta}
 		end
 
-		g_gui:showYesNoDialog({
-			title = self.l10n:getText(InGameMenuMapFrame.L10N_SYMBOL.DIALOG_BUY_FARMLAND_TITLE),
-			text = text,
-			callback = callback,
-			target = target,
-			args = args
-		})
+		YesNoDialog.show(callback, target, text, 
+			g_i18n:getText(InGameMenuMapFrame.L10N_SYMBOL.DIALOG_BUY_FARMLAND_TITLE),
+			nil,nil,nil,nil,nil, args)
 	else
-		g_gui:showInfoDialog({
-			title = self.l10n:getText(InGameMenuMapFrame.L10N_SYMBOL.DIALOG_BUY_FARMLAND_TITLE),
-			text = self.l10n:getText(InGameMenuMapFrame.L10N_SYMBOL.DIALOG_BUY_FARMLAND_NOT_ENOUGH_MONEY)
-		})
+		InfoDialog.show(g_i18n:getText(InGameMenuMapFrame.L10N_SYMBOL.DIALOG_BUY_FARMLAND_NOT_ENOUGH_MONEY))
 	end
 end
 function BetterContracts:onYesNoBuyFarmland(yes, args)
+	local mapFrame = self.frMap
 	if yes then 
 		-- remove owner info:
-		local bc = BetterContracts
-		bc.my.ownerText:setVisible(false)
-		bc.my.ownerLabel:setVisible(false)
+		--self.my.text.owner:setVisible(false)
+		--self.my.title.owner:setVisible(false)
 		g_client:getServerConnection():sendEvent(FarmlandStateEvent.new(unpack(args)))
+		mapFrame:setMapSelectionItem()
+		InGameMenuMapUtil.hideContextBox(mapFrame.contextBox)
+		InGameMenuMapUtil.hideContextBox(mapFrame.contextBoxPlayer)
+		InGameMenuMapUtil.hideContextBox(mapFrame.contextBoxFarmland)
+	else
+		mapFrame.elementToFocus = mapFrame.contextButtonListFarmland
 	end
 end
 function BetterContracts:onFarmlandStateChanged(landId, farmId)
