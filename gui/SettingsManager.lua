@@ -118,7 +118,7 @@ function SettingsManager:updateDisabled(controlName)
     end
 end
 function updateSubCategoryPages(self, state)
-	-- appended to InGameMenuSettingsFrame:updateSubCategoryPages() 
+	-- overwrites InGameMenuSettingsFrame:updateSubCategoryPages() 
 	debugPrint("**updateSubCategoryPages state = %d", state)
 	local modPage = BetterContracts.modPage
 	local modState = BetterContracts.settingsMgr.modState

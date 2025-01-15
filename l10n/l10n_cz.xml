@@ -116,7 +116,7 @@
 		<text name="bc_hardLimit" text="Zakázky za měsíc" />
 		<text name="bc_hardLimit_tooltip" text="Maximální počet zakázek, které lze přijmout během jednoho měsíce. (-1: bez omezení, 0: žádné smlouvy)" />
 
-		<text name="bc_discountTitle" text="Sleva na nákup polí" />
+		<text name="bc_discountModeTitle" text="Sleva na nákup polí" />
 		<text name="bc_discountMode" text="Aktivováno" />
 		<text name="bc_discountMode_tooltip" text="Pokud je aktivní, NPC farmář poskytuje slevu na nákupy zemědělské půdy. Sleva se zvyšuje s počtem dokončených zakázek pro tohoto farmáře." />
 		<text name="bc_discPerJob" text="Sleva za dokončenou zakázku" />

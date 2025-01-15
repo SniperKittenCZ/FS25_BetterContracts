@@ -210,8 +210,6 @@ function loadPrices(self)
 end
 function hookFunctions(self)
  --[[
-	-- to show our ingame menu settings page when admin logs in:
-	Utility.appendedFunction(InGameMenuMultiplayerUsersFrame,"onAdminLoginSuccess",adminMP)
 	-- to allow forage wagon on bale missions:
 	Utility.overwrittenFunction(BaleMission, "new", baleMissionNew)
 	-- to allow MOWER / SWATHER on harvest missions:

@@ -10,10 +10,11 @@
 	<text name="bc_other" text="Otro" />
 	<text name="bc_new_contracts" text="Nuevos Contratos" />
 	<text name="bc_clear_contracts" text="Limpiar contratos" />
-	<text name="bc_detailsOff" text="Detalles off" />
-	<text name="bc_detailsOn" text="Detalles on" />
+	<text name="bc_detailsOff" text="BC off" />
+	<text name="bc_detailsOn" text="BC on" />
 
 	<!-- Display texts -->
+	<text name="bc_name" text="Better Contracts" />
 	<text name="bc_mowed" text="Segar:" />
 	<text name="bc_tomow" text="Para segar:" />
 	<text name="bc_chaff" text="Segar %s" />
@@ -32,7 +33,7 @@
 
 	<!-- discount mode -->
 	<text name="bc_maxJobs" text="Ha alcanzado el descuento máximo para %s." />
-	<text name="bc_discount" text=" (%d%% descuento)" />
+	<text name="bc_discount" text=" descuento" />
 	<text name="bc_discValue" text="%s le otorga %d %% de descuento para futuras compras de campo." />
 	<text name="bc_owner" text="Dueño:" />
 
@@ -68,9 +69,6 @@
 	<text name="SC_sortpMin" text="beneficio por minuto" />
 
 	<!-- Settings Page -->
-	<text name="bc_settingsPage_title" text="Configuración de contratos" />
-
-	<text name="bc_baseSettings" text="Configuración básica" />
 	<text name="bc_rewardMultiplier" text="Recompensa" />
 	<text name="bc_rewardMultiplier_tooltip" text="Ajuste las recompensas para los contratos ofrecidos." />
 	<text name="bc_rewardMultiplierMow" text="Recompensa por segar y empacar" />
@@ -80,8 +78,9 @@
 	<text name="bc_maxActive" text="Contratos activos simultáneamente" />
 	<text name="bc_maxActive_tooltip" text="Número máximo de contratos activos simultáneamente." />
 	<text name="bc_toDeliver" text="Entrega en contratos de cosecha" />
-	<text name="bc_toDeliverBale" text="Entrega para contratos de empacado" />
 	<text name="bc_toDeliver_tooltip" text="Porcentaje del rendimiento total estimado que debe entregar para completar un contrato de cosecha." />
+	<text name="bc_toDeliverBale" text="Entrega para contratos de empacado" />
+	<text name="bc_toDeliverBale_tooltip" text="Porcentaje del rendimiento total estimado que debe entregar para completar un contrato de cosecha." />
 	<text name="bc_fieldCompletion" text="Trabajo de campo completo" />
 	<text name="bc_fieldCompletion_tooltip" text="Porcentaje mínimo del área de campo trabajada, para contar como trabajo de campo completo." />
 	<text name="bc_refreshMP" text="Lista de permisos para contratos" />
@@ -93,19 +92,19 @@
 	<text name="bc_debug" text="Debug Modus" />
 	<text name="bc_debug_tooltip" text="Registra mensajes de información en el registro si está activo. Puede ayudar a encontrar errores." />
 
-	<text name="bc_lazyNPC" text="Agricultores perezosos" />
+	<text name="bc_lazyNPCTitle" text="Agricultores perezosos" />
 
-	<text name="bc_mainSwitch" text="Activado" />
-	<text name="bc_active" text="Activado" />
+	<text name="bc_lazyNPC" text="Activado" />
 	<text name="bc_lazyNPC_tooltip" text="Si está activo, los agricultores NPC a menudo se saltan el trabajo en sus campos. Así se pueden ofrecer más contratos." />
-	<text name="bc_lazyNPCHarvest_tooltip" text="Si está activo, los agricultores NPC no cosechan nada. Podría resultar en mucho trabajo para usted." />
-	<text name="bc_lazyNPCSow_tooltip" text="Si está activo, los agricultores NPC realizan trabajos de siembra con menos frecuencia y los ofrecen como contratos en su lugar." />
-	<text name="bc_lazyNPCPlow" text="Arar y cultivar" />
-	<text name="bc_lazyNPCPlow_tooltip" text="Si están activos, los agricultores NPC aran o cultivan con menos frecuencia por su cuenta." />
-	<text name="bc_lazyNPCFertilize_tooltip" text="Si está activo, el agricultor NPC realiza el trabajo de fertilización con menos frecuencia y lo ofrece como contratos en su lugar." />
-	<text name="bc_lazyNPCWeed_tooltip" text="Si está activo, los agricultores NPC combaten las malas hierbas en sus campos con menos frecuencia y, en cambio, ofrecen contratos de fumigación y desherbado." />
+	<text name="bc_npcHarvest_tooltip" text="Si está activo, los agricultores NPC no cosechan nada. Podría resultar en mucho trabajo para usted." />
+	<text name="bc_npcSow_tooltip" text="Si está activo, los agricultores NPC realizan trabajos de siembra con menos frecuencia y los ofrecen como contratos en su lugar." />
+	<text name="bc_npcPlowCultivate" text="Arar y cultivar" />
+	<text name="bc_npcPlowCultivate_tooltip" text="Si están activos, los agricultores NPC aran o cultivan con menos frecuencia por su cuenta." />
+	<text name="bc_npcFertilize_tooltip" text="Si está activo, el agricultor NPC realiza el trabajo de fertilización con menos frecuencia y lo ofrece como contratos en su lugar." />
+	<text name="bc_npcWeed_tooltip" text="Si está activo, los agricultores NPC combaten las malas hierbas en sus campos con menos frecuencia y, en cambio, ofrecen contratos de fumigación y desherbado." />
 
-	<text name="bc_hardMode" text="Dificultad alta" />
+	<text name="bc_hardModeTitle" text="Dificultad alta" />
+	<text name="bc_hardMode" text="Activado" />
 	<text name="bc_hardMode_tooltip" text="Si está activo, todos los contratos activos deben completarse a fin de mes a más tardar. Cancelar un contrato tendrá un coste de penalización. El equipo alquilado para el contrato solo se desbloquea después de completar algunos trabajos." />
 	<text name="bc_hardPenalty" text="Penalización" />
 	<text name="bc_hardPenalty_tooltip" text="Importe de la penalización por contrato cancelado (en % de la recompensa del contrato)." />
@@ -116,7 +115,8 @@
 	<text name="bc_hardLimit" text="Contratos por mes" />
 	<text name="bc_hardLimit_tooltip" text="Número máximo de contratos que se pueden aceptar durante un mes. (-1: sin límite, 0: sin contratos)" />
 
-	<text name="bc_discountMode" text="Descuento en la compra de un campo" />
+	<text name="bc_discountModeTitle" text="Descuento en la compra de un campo" />
+	<text name="bc_discountMode" text="Activado" />
 	<text name="bc_discountMode_tooltip" text="Si está activo, un agricultor NPC otorga un descuento en las compras de tierras de cultivo. El descuento aumenta con el número de trabajos completados para este agricultor." />
 	<text name="bc_discPerJob" text="Descuento por contrato completado" />
 	<text name="bc_discPerJob_tooltip" text="Un agricultor NPC aumenta su descuento en esta cantidad por cada trabajo completado. El descuento máximo no puede superar el 50%." />

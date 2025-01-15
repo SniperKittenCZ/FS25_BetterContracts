@@ -26,7 +26,7 @@ ControlProperties = {
     { name = "ferment", autoBind = true },
     { name = "forcePlow", autoBind = true },
     { name = "debug", autoBind = true },
-	{title = "bc_discountTitle"},
+	{title = "bc_discountModeTitle"},
     { name = "discountMode", autoBind = true },
     { name = "discPerJob", min= .01, max= .14, step= .01, unit= "%", autoBind = true },  --
     { name = "discMaxJobs", min= 1, max= 20, step= 1, autoBind = true },

@@ -101,7 +101,6 @@
 		<text name="bc_lazyNPCTitle" text="Lazy Farmers" />
 
 		<text name="bc_lazyNPC" text="Activated" />
-		<text name="bc_active" text="Activated" />
 		<text name="bc_lazyNPC_tooltip" text="If active, NPC farmers more often skip work on their fields. So more contracts can be offered." />
 		<text name="bc_npcHarvest_tooltip" text="If active, NPC farmers do not harvest at all. Could result in a lot of work for you." />
 		<text name="bc_npcSow_tooltip" text="If active, NPC farmers perform sowing work more rarely and offer it as contracts instead." />
@@ -122,7 +121,7 @@
 		<text name="bc_hardLimit" text="Contracts per Month" />
 		<text name="bc_hardLimit_tooltip" text="Max number of contracts that can be accepted during one month. (-1: no limit, 0: no contracts)" />
 
-		<text name="bc_discountTitle" text="Field purchase discount" />
+		<text name="bc_discountModeTitle" text="Field purchase discount" />
 		<text name="bc_discountMode" text="Activated" />
 		<text name="bc_discountMode_tooltip" text="If active, an NPC farmer give a discount on farmland purchases. Discount increases with the number of completed jobs for this farmer." />
 		<text name="bc_discPerJob" text="Discount per completed contract" />

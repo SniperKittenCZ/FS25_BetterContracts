@@ -14,8 +14,9 @@
 		<text name="bc_detailsOn" text="Детали вкл." />
 		
 		<!-- Display texts -->
-		<text name="bc_mowed" text="Mowed:" />
-		<text name="bc_tomow" text="To mow:" />
+		<text name="bc_name" text="Better Contracts" />
+		<text name="bc_mowed" text="Скосить:" />
+		<text name="bc_tomow" text="Косить:" />
 		<text name="bc_chaff" text="Скосить %s" />
 		<text name="bc_jobType_chaff" text="Заготовка корма" />
 		<text name="bc_harvest" text="Собр. %s" />
@@ -32,7 +33,7 @@
 
 		<!-- discount mode -->
 		<text name="bc_maxJobs" text="Вы достигли максимальной скидки на %s." />
-		<text name="bc_discount" text=" (скидка %d%%)" />
+		<text name="bc_discount" text="скидка" />
 		<text name="bc_discValue" text="%s предоставляет вам скидку %d %% на будущую покупку участка." />
 		<text name="bc_owner" text="Владелец:" />
 
@@ -80,10 +81,11 @@
 		<text name="bc_maxActive" text="Одновременно активные контракты" />
 		<text name="bc_maxActive_tooltip" text="Максимальное количество одновременно активных контрактов." />
 		<text name="bc_toDeliver" text="Доставка по контрактам на сбор урожая" />
-		<text name="bc_toDeliverBale" text="Доставка по контрактам на тюкование" />
 		<text name="bc_toDeliver_tooltip" text="Процент от расчётного общего урожая, который вы должны доставить, чтобы выполнить контракт на сбор урожая." />
-		<text name="bc_fieldCompletion" text="Fieldwork complete" />
-		<text name="bc_fieldCompletion_tooltip" text="Min percentage of field area worked, to count as fieldwork complete." />
+		<text name="bc_toDeliverBale" text="Доставка по контрактам на тюкование" />
+		<text name="bc_toDeliverBale_tooltip" text="Процент от расчётного общего урожая, который вы должны доставить, чтобы выполнить контракт на сбор урожая." />
+		<text name="bc_fieldCompletion" text="Полевые работы завершены" />
+		<text name="bc_fieldCompletion_tooltip" text="Минимальный процент обработанной площади поля, который будет считаться завершенным." />
 		<text name="bc_refreshMP" text="Управляющий контрактами в МП" />
 		<text name="bc_refreshMP_tooltip" text="Кто может удалять/обновлять контракты в сетевой игре." />
 		<text name="bc_ferment" text="Мгновенная ферментация" />
@@ -93,19 +95,19 @@
 		<text name="bc_debug" text="Режим отладки" />
 		<text name="bc_debug_tooltip" text="Информационные сообщения в журнале, если активировано. Может помочь найти ошибки." />
 
-		<text name="bc_lazyNPC" text="”Ленивые“ фермеры" />
+		<text name="bc_lazyNPCTitle" text="”Ленивые“ фермеры" />
 
-		<text name="bc_mainSwitch" text="Активировать" />
-		<text name="bc_active" text="Активировано" />
+		<text name="bc_lazyNPC" text="Активировать" />
 		<text name="bc_lazyNPC_tooltip" text="Если активировано, NPC-фермеры чаще пропускают работу на своих полях. Таким образом, может быть предложено больше контрактов." />
-		<text name="bc_lazyNPCHarvest_tooltip" text="Если активировано, NPC-фермеры вообще не собирают урожай. Может привести к большому количеству работы для вас." />
-		<text name="bc_lazyNPCSow_tooltip" text="Если активировано, NPC-фермеры реже выполняют посевные работы и вместо этого предлагают их в качестве контрактов." />
-		<text name="bc_lazyNPCPlow" text="Вспашка и культивация" />
-		<text name="bc_lazyNPCPlow_tooltip" text="Если активировано, NPC-фермеры реже пашут или культивируют землю самостоятельно." />
-		<text name="bc_lazyNPCFertilize_tooltip" text="Если активировано, NPC-фермеры реже выполняют работы по удобрению и вместо этого предлагают их в качестве контрактов." />
-		<text name="bc_lazyNPCWeed_tooltip" text="Если активировано, NPC-фермеры реже борются с сорняками на своих полях и вместо этого предлагают опрыскивание и прополку в качестве контрактов." />
+		<text name="bc_npcHarvest_tooltip" text="Если активировано, NPC-фермеры вообще не собирают урожай. Может привести к большому количеству работы для вас." />
+		<text name="bc_npcSow_tooltip" text="Если активировано, NPC-фермеры реже выполняют посевные работы и вместо этого предлагают их в качестве контрактов." />
+		<text name="bc_npcPlowCultivate" text="Вспашка и культивация" />
+		<text name="bc_npcPlowCultivate_tooltip" text="Если активировано, NPC-фермеры реже пашут или культивируют землю самостоятельно." />
+		<text name="bc_npcFertilize_tooltip" text="Если активировано, NPC-фермеры реже выполняют работы по удобрению и вместо этого предлагают их в качестве контрактов." />
+		<text name="bc_npcWeed_tooltip" text="Если активировано, NPC-фермеры реже борются с сорняками на своих полях и вместо этого предлагают опрыскивание и прополку в качестве контрактов." />
 
-		<text name="bc_hardMode" text="Более высокая сложность" />
+		<text name="bc_hardModeTitle" text="Более высокая сложность" />
+		<text name="bc_hardMode" text="Активировать" />
 		<text name="bc_hardMode_tooltip" text="Если активировано, все активные контракты должны быть завершены не позднее конца месяца. Расторжение контракта будет стоить штрафа. Аренда контрактного оборудования разблокируется только после выполнения некоторых заданий." />
 		<text name="bc_hardPenalty" text="Штраф" />
 		<text name="bc_hardPenalty_tooltip" text="Сумма штрафа за расторжение контракта (в % от вознаграждения по контракту)." />
@@ -115,8 +117,9 @@
 		<text name="bc_hardExpire_tooltip" text="В конце какого периода времени все активные контракты должны быть завершены." />
 		<text name="bc_hardLimit" text="Контрактов в месяц" />
 		<text name="bc_hardLimit_tooltip" text="Максимальное количество контрактов, которые можно принять в течение одного месяца. (-1: без ограничений, 0: без контрактов)" />
-
-		<text name="bc_discountMode" text="Скидка на покупку поля" />
+        
+		<text name="bc_discountModeTitle" text="Скидка на покупку поля" />
+		<text name="bc_discountMode" text="Активировано" />
 		<text name="bc_discountMode_tooltip" text="Если активировано, NPC-фермер даёт скидку на покупку участков. Скидка увеличивается с увеличением количества выполненных заданий для этого фермера." />
 		<text name="bc_discPerJob" text="Скидка за выполненный контракт" />
 		<text name="bc_discPerJob_tooltip" text="NPC-фермер увеличивает свою скидку на эти проценты за выполненную работу. Максимальная скидка не может превышать 50%." />

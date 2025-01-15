@@ -122,7 +122,7 @@
 		<text name="bc_hardLimit" text="Verträge pro Monat" />
 		<text name="bc_hardLimit_tooltip" text="Anzahl Verträge, die pro Monat maximal angenommen werden können. (-1: no limit, 0: keine Verträge)" />
 
-		<text name="bc_discountTitle" text="Nachlass bei Feldkäufen" />
+		<text name="bc_discountModeTitle" text="Nachlass bei Feldkäufen" />
 		<text name="bc_discountMode" text="Aktiviert" />
 		<text name="bc_discountMode_tooltip" text="Wenn aktiviert, gewährt ein NPC Farmer einen Nachlass auf von ihm gekaufte Farmlands, der mit der Anzahl der erfolgreich für ihn erfüllten Verträge steigt." />
 		<text name="bc_discPerJob" text="Nachlass pro erfülltem Vertrag" />
